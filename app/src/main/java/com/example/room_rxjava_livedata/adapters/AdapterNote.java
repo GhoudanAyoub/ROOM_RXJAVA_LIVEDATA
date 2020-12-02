@@ -27,7 +27,7 @@ public class AdapterNote extends RecyclerView.Adapter<AdapterNote.AdapterNoteHol
 
     @Override
     public void onBindViewHolder(@NonNull AdapterNoteHolder holder, int position) {
-//            holder.idnum.setText(notesList.get(position).getUserid());
+            holder.idnum.setText(Integer.toString(notesList.get(position).getUserid()));
             holder.idtext.setText(notesList.get(position).getNote_txt());
     }
 

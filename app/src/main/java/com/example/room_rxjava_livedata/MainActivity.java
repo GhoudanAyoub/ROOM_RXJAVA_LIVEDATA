@@ -12,6 +12,7 @@ import android.widget.Toast;
 
 import com.example.room_rxjava_livedata.adapters.AdapterNote;
 import com.example.room_rxjava_livedata.models.notes;
+import com.example.room_rxjava_livedata.presistence.Repository;
 import com.example.room_rxjava_livedata.presistence.noteDb;
 
 import java.util.List;
@@ -27,7 +28,7 @@ public class MainActivity extends AppCompatActivity {
 
     private EditText ccdf,idtext;
     private Button addb,showb;
-    private noteDb mnotedb;
+    private Repository repository;
     private RecyclerView recyclerView;
     private AdapterNote adapterNote;
     @Override
@@ -35,7 +36,7 @@ public class MainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
         view();
-        mnotedb = noteDb.getInstance(this);
+        repository = new Repository(this);
         adapterNote = new AdapterNote();
         recyclerView.setAdapter(adapterNote);
         recyclerView.setLayoutManager(new LinearLayoutManager(this));
@@ -54,7 +55,7 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void addnote(notes notes){
-        mnotedb.notedao().addnote(notes)
+        repository.addnote(notes)
                 .subscribeOn(Schedulers.computation())
                 .subscribe(new CompletableObserver() {
                     @Override
@@ -70,7 +71,7 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void showall(){
-        mnotedb.notedao().getnotes()
+        repository.getnotes()
                 .subscribeOn(Schedulers.computation())
                 .observeOn(AndroidSchedulers.mainThread())
                 .subscribe(new SingleObserver<List<notes>>() {

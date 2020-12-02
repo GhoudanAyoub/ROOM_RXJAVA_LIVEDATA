@@ -1,6 +1,9 @@
 package com.example.room_rxjava_livedata;
 
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.lifecycle.Observer;
+import androidx.lifecycle.ViewModel;
+import androidx.lifecycle.ViewModelProviders;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
@@ -10,10 +13,12 @@ import android.widget.Button;
 import android.widget.EditText;
 import android.widget.Toast;
 
+import com.example.room_rxjava_livedata.UI.noteModelView;
 import com.example.room_rxjava_livedata.adapters.AdapterNote;
 import com.example.room_rxjava_livedata.models.notes;
 import com.example.room_rxjava_livedata.presistence.noteDb;
 
+import java.security.Provider;
 import java.util.List;
 
 import io.reactivex.CompletableObserver;
@@ -27,7 +32,7 @@ public class MainActivity extends AppCompatActivity {
 
     private EditText ccdf,idtext;
     private Button addb,showb;
-    private noteDb mnotedb;
+    private noteModelView noteModelView;
     private RecyclerView recyclerView;
     private AdapterNote adapterNote;
     @Override
@@ -35,12 +40,11 @@ public class MainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
         view();
-        mnotedb = noteDb.getInstance(this);
         adapterNote = new AdapterNote();
         recyclerView.setAdapter(adapterNote);
         recyclerView.setLayoutManager(new LinearLayoutManager(this));
-
-
+        noteModelView = ViewModelProviders.of(this).get(noteModelView.class);
+        noteModelView.ShowAllData(getApplicationContext());
         addb.setOnClickListener(v -> addnote(new notes(Integer.parseInt(ccdf.getText().toString()),idtext.getText().toString())));
         showb.setOnClickListener(v -> showall());
 
@@ -54,38 +58,17 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void addnote(notes notes){
-        mnotedb.notedao().addnote(notes)
-                .subscribeOn(Schedulers.computation())
-                .subscribe(new CompletableObserver() {
-                    @Override
-                    public void onSubscribe(@NonNull Disposable d) { }
-
-                    @Override
-                    public void onComplete() { }
-
-                    @Override
-                    public void onError(@NonNull Throwable e) {
-                    }
-                });
+        noteModelView.addnote(getApplicationContext(),notes);
+        Toast.makeText(getApplicationContext(), "done", Toast.LENGTH_SHORT).show();
+        ccdf.getText().clear();
+        idtext.getText().clear();
     }
 
     private void showall(){
-        mnotedb.notedao().getnotes()
-                .subscribeOn(Schedulers.computation())
-                .observeOn(AndroidSchedulers.mainThread())
-                .subscribe(new SingleObserver<List<notes>>() {
-                    @Override
-                    public void onSubscribe(@NonNull Disposable d) { }
-
-                    @Override
-                    public void onSuccess(@NonNull List<notes> notes) {
-                        adapterNote.setList(notes);
-                        adapterNote.notifyDataSetChanged();
-                    }
-
-                    @Override
-                    public void onError(@NonNull Throwable e) {
-                    }
+        noteModelView.singleMutableLiveData
+                .observe(this, notes -> {
+                    adapterNote.setList(notes);
+                    adapterNote.notifyDataSetChanged();
                 });
     }
 }
